@@ -19,6 +19,7 @@ const path = require('path');
     await fs.promises.mkdir('apks', { recursive: true });
     const browser = await puppeteer.launch({ headless: false });
     for (const e of q) {
+        if (fs.existsSync('apks/' + e)) continue; // already downloaded
         const page = await browser.newPage();
         await fs.promises.mkdir('apks/' + e, { recursive: true });
         await page.goto('https://apkcombo.com/downloader/#package=' + e);
