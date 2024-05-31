@@ -3,3 +3,4 @@ package-lock.json
 download-list.txt
 *.apk
 *.crdownload
+*.xapk

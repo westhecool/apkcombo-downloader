@@ -59,6 +59,7 @@ const path = require('path');
         }
         if (!success) {
             console.log('Failed to download ' + e);
+            await page.close();
             continue;
         }
         var d = false;
