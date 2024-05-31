@@ -23,12 +23,19 @@ const path = require('path');
         await fs.promises.mkdir('apks/' + e, { recursive: true });
         await page.goto('https://apkcombo.com/downloader/#package=' + e);
         var got = false;
+        var success = false;
         while (!got) { // the site is buggy sometimes
-            await page.evaluate(async () => {
+            success = await page.evaluate(async () => {
                 var r = false;
                 while (!r) {
+                    for (const e of Array.from(document.getElementsByTagName('p'))) {
+                        if (e.innerText.includes('app has been removed')) {
+                            return false;
+                        }
+                    }
                     for (const e of Array.from(document.getElementsByTagName('a'))) {
-                        if (e.href.startsWith('https://apkcombo.com/r2') || e.href.split('?')[0].endsWith('.apk')) {
+                        if (e.href.includes('apkcombo-installer.apk')) continue;
+                        if (e.href.startsWith('https://apkcombo.com/r2') || e.href.split('?')[0].endsWith('.apk') || e.href.split('?')[0].endsWith('.xapk')) {
                             window.location = e.href;
                             r = true;
                             break;
@@ -36,13 +43,22 @@ const path = require('path');
                     }
                     await new Promise(resolve => setTimeout(resolve, 100));
                 }
+                return true;
             });
-            await new Promise(resolve => setTimeout(resolve, 2000));
-            for (const file of await fs.promises.readdir(process.cwd())) {
-                if (file.endsWith('.crdownload')) {
-                    got = true;
+            if (success) {
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                for (const file of await fs.promises.readdir(process.cwd())) {
+                    if (file.endsWith('.crdownload')) {
+                        got = true;
+                    }
                 }
+            } else {
+                got = true;
             }
+        }
+        if (!success) {
+            console.log('Failed to download ' + e);
+            continue;
         }
         var d = false;
         while (!d) {
