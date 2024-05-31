@@ -52,9 +52,9 @@ const path = require('path');
                 return true;
             });
             if (success) {
-                await new Promise(resolve => setTimeout(resolve, 2000));
+                await new Promise(resolve => setTimeout(resolve, 5000));
                 for (const file of await fs.promises.readdir(process.cwd())) {
-                    if (file.endsWith('.crdownload')) {
+                    if (file.endsWith('.crdownload') || file.endsWith('.apk') || file.endsWith('.xapk')) {
                         got = true;
                     }
                 }
