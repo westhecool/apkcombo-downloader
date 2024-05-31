@@ -17,7 +17,7 @@ const fs = require('fs');
 const path = require('path');
 (async () => {
     for (const file of await fs.promises.readdir(process.cwd())) {
-        if (file.endsWith('.apk') || file.endsWith('.xapk')) {
+        if (file.endsWith('.apk') || file.endsWith('.xapk') || file.endsWith('.crdownload')) {
             await fs.promises.rm(file);
         }
     }
