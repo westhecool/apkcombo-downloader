@@ -26,7 +26,6 @@ const path = require('path');
     for (const e of q) {
         if (fs.existsSync('apks/' + e)) continue; // already downloaded
         const page = await browser.newPage();
-        await fs.promises.mkdir('apks/' + e, { recursive: true });
         await page.goto('https://apkcombo.com/downloader/#package=' + e);
         var got = false;
         var success = true;
@@ -35,13 +34,15 @@ const path = require('path');
                 var r = false;
                 while (!r) {
                     for (const e of Array.from(document.getElementsByTagName('p'))) {
-                        if (e.innerText.includes('app has been removed') || e.innerText.includes('not available to download')) {
+                        if (!e.innerText) continue;
+                        if (e.innerText.includes('app has been removed') || e.innerText.includes('not available to download') || e.innerText.includes('application was not found')) {
                             return e.innerText;
                         }
                     }
                     for (const e of Array.from(document.getElementsByTagName('a'))) {
+                        if (!e.href) continue;
                         if (e.href.includes('apkcombo-installer.apk')) continue;
-                        if (e.href.startsWith('https://apkcombo.com/r2') || e.href.split('?')[0].endsWith('.apk') || e.href.split('?')[0].endsWith('.xapk')) {
+                        if (e.href.startsWith('https://apkcombo.com/r2?') || e.href.startsWith('https://apkcombo.com/d?') || e.href.split('?')[0].endsWith('.apk') || e.href.split('?')[0].endsWith('.xapk')) {
                             window.location = e.href;
                             r = true;
                             break;
@@ -56,7 +57,7 @@ const path = require('path');
                 got = true;
                 console.log('Failed to download ' + e + ':', error);
                 await page.close();
-                if (error.includes('DMCA')) {
+                if (error.includes('DMCA') || error.includes('application was not found')) {
                     await fs.promises.appendFile('dmca-removed.txt', e + '\n');
                 }
             } else {
@@ -73,6 +74,7 @@ const path = require('path');
         while (!d) {
             for (const file of await fs.promises.readdir(process.cwd())) {
                 if (file.endsWith('.apk') || file.endsWith('.xapk')) {
+                    await fs.promises.mkdir('apks/' + e, { recursive: true });
                     await fs.promises.rename(file, 'apks/' + e + '/' + file);
                     d = true;
                     break;
