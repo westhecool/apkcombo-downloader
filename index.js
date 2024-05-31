@@ -16,6 +16,11 @@ puppeteer.use(require('puppeteer-extra-plugin-adblocker')({ blockTrackers: true 
 const fs = require('fs');
 const path = require('path');
 (async () => {
+    for (const file of await fs.promises.readdir(process.cwd())) {
+        if (file.endsWith('.apk') || file.endsWith('.xapk')) {
+            await fs.promises.rm(file);
+        }
+    }
     await fs.promises.mkdir('apks', { recursive: true });
     const browser = await puppeteer.launch({ headless: false });
     for (const e of q) {
@@ -30,7 +35,7 @@ const path = require('path');
                 var r = false;
                 while (!r) {
                     for (const e of Array.from(document.getElementsByTagName('p'))) {
-                        if (e.innerText.includes('app has been removed')) {
+                        if (e.innerText.includes('app has been removed') || e.innerText.includes('not available to download')) {
                             return false;
                         }
                     }
@@ -68,6 +73,7 @@ const path = require('path');
                 if (file.endsWith('.apk') || file.endsWith('.xapk')) {
                     await fs.promises.rename(file, 'apks/' + e + '/' + file);
                     d = true;
+                    break;
                 }
             }
             await new Promise(resolve => setTimeout(resolve, 100));
