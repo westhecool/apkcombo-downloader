@@ -29,14 +29,14 @@ const path = require('path');
         await fs.promises.mkdir('apks/' + e, { recursive: true });
         await page.goto('https://apkcombo.com/downloader/#package=' + e);
         var got = false;
-        var success = false;
+        var success = true;
         while (!got) { // the site is buggy sometimes
-            success = await page.evaluate(async () => {
+            const error = await page.evaluate(async () => {
                 var r = false;
                 while (!r) {
                     for (const e of Array.from(document.getElementsByTagName('p'))) {
                         if (e.innerText.includes('app has been removed') || e.innerText.includes('not available to download')) {
-                            return false;
+                            return e.innerText;
                         }
                     }
                     for (const e of Array.from(document.getElementsByTagName('a'))) {
@@ -49,24 +49,26 @@ const path = require('path');
                     }
                     await new Promise(resolve => setTimeout(resolve, 100));
                 }
-                return true;
+                return null;
             });
-            if (success) {
+            if (error) {
+                success = false;
+                got = true;
+                console.log('Failed to download ' + e + ':', error);
+                await page.close();
+                if (error.includes('DMCA')) {
+                    await fs.promises.appendFile('dmca-removed.txt', e + '\n');
+                }
+            } else {
                 await new Promise(resolve => setTimeout(resolve, 5000));
                 for (const file of await fs.promises.readdir(process.cwd())) {
                     if (file.endsWith('.crdownload') || file.endsWith('.apk') || file.endsWith('.xapk')) {
                         got = true;
                     }
                 }
-            } else {
-                got = true;
             }
         }
-        if (!success) {
-            console.log('Failed to download ' + e);
-            await page.close();
-            continue;
-        }
+        if (!success) continue;
         var d = false;
         while (!d) {
             for (const file of await fs.promises.readdir(process.cwd())) {
