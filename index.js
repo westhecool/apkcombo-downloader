@@ -42,7 +42,7 @@ const path = require('path');
                     for (const e of Array.from(document.getElementsByTagName('a'))) {
                         if (!e.href) continue;
                         if (e.href.includes('apkcombo-installer.apk')) continue;
-                        if (e.href.startsWith('https://apkcombo.com/r2?') || e.href.startsWith('https://apkcombo.com/d?') || e.href.split('?')[0].endsWith('.apk') || e.href.split('?')[0].endsWith('.xapk')) {
+                        if (e.href.startsWith('https://ztp1.androidcombo.com') || e.href.startsWith('https://apkcombo.com/r2?') || e.href.startsWith('https://apkcombo.com/d?') || e.href.split('?')[0].endsWith('.apk') || e.href.split('?')[0].endsWith('.xapk')) {
                             window.location = e.href;
                             r = true;
                             break;
@@ -69,12 +69,12 @@ const path = require('path');
                 }
             }
         }
+        await fs.promises.mkdir('apks/' + e, { recursive: true });
         if (!success) continue;
         var d = false;
         while (!d) {
             for (const file of await fs.promises.readdir(process.cwd())) {
                 if (file.endsWith('.apk') || file.endsWith('.xapk')) {
-                    await fs.promises.mkdir('apks/' + e, { recursive: true });
                     await fs.promises.rename(file, 'apks/' + e + '/' + file);
                     d = true;
                     break;
